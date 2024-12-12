@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser, User
+from django.contrib.auth.models import AbstractUser, User 
 from django.db import models
 from .validators import CustomValidators
 
@@ -49,4 +49,6 @@ class Supplier(models.Model):
         CustomValidators.validate_kpp_for_ooo(self)
         
     def __str__(self):
-        return f"{self.user.username}, {self.name_organization} (Поставщик)"
+        if not self.name_organization:
+            return f"ИП {self.user.username} (Поставщик)"
+        return f"{self.name_organization} (Поставщик)"
