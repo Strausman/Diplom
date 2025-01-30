@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from order.models import Category, Parameter, Product, ProductInfo, ProductParameter
+from products.models import Category, Parameter, Product, ProductInfo, ProductParameter
 
 
 

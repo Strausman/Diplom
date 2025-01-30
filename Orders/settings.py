@@ -13,6 +13,16 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv
 import os
+import rollbar
+import rollbar.contrib.django
+
+
+
+ROLLBAR_ACCESS_TOKEN = ''  # Оставляем пустым для возможности вставки токена позже
+rollbar.init(
+    access_token=ROLLBAR_ACCESS_TOKEN,
+    environment='development',  # или 'production' в зависимости от среды
+)
 
 INTERNAL_IPS = [
     '127.0.0.1'
@@ -48,10 +58,33 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'customers_suppliers',
     'rest_framework',
-    'rest_framework.authtoken',
+    'debug_toolbar',
     'django_filters',
-    'order',
+    'rest_framework.authtoken',
+    'products',
+    'basket',
+    'drf_spectacular',
+    'django.contrib.sites',  
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google', 
+    'allauth.socialaccount.providers.facebook',
+    'baton',
+    'easy_thumbnails',
 ]
+
+SITE_ID = 1
+
+THUMBNAIL_ALIASES = {
+    'default': {
+        'small': {'size': (100, 100), 'crop': True},
+        'medium': {'size': (300, 300), 'crop': True},
+        'large': {'size': (600, 600), 'crop': True},
+    },
+}
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -61,9 +94,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
-ROOT_URLCONF = 'Orders.urls'
+ROOT_URLCONF = 'orders.urls'
 
 TEMPLATES = [
     {
@@ -81,7 +116,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'Orders.wsgi.application'
+WSGI_APPLICATION = 'orders.wsgi.application'
 
 
 # Database
@@ -142,14 +177,81 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'customers_suppliers.CustomUser'
 
+INTERNAL_IPS = [
+    '127.0.0.1'
+]
+
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend'
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 30,
     
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
+            'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day',  # Ограничение для анонимных пользователей
+        'user': '1000/day',  # Ограничение для зарегистрированных пользователей
+    },
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,  # Отключаем существующие логгеры
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Формат сообщения с временными метками
+            'datefmt': '%Y-%m-%d %H:%M:%S',  # Формат времени
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'load_data.log',
+            'encoding': 'utf-8',  # Поддержка UTF-8
+            'formatter': 'verbose',  # Используем форматтер
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',  # Обработчик для вывода в консоль
+            'formatter': 'verbose',  # Используем форматтер
+        },
+    },
+    'loggers': {
+        'basket': {  # Замените на имя вашего приложения
+            'handlers': ['file', 'console'],  # Добавляем оба обработчика
+            'level': 'DEBUG',
+            'propagate': False,  # Не передаем сообщения выше по иерархии
+        },
+        
+        'order': {  # Замените на имя вашего приложения
+            'handlers': ['file', 'console'],  # Добавляем оба обработчика
+            'level': 'DEBUG',
+            'propagate': False,  # Не передаем сообщения выше по иерархии
+        },
+    },
+}
+
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Your Project API',
+    'DESCRIPTION': 'Your project description',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    # OTHER SETTINGS
+}
+
+CACHALOT_ENABLED = True
+CACHALOT_REDIS = {
+    'host': 'localhost',
+    'port': 6379,
+    'db': 0,
 }

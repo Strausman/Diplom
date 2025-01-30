@@ -1,21 +1,21 @@
-from rest_framework import serializers
 from django.forms import ValidationError
+from rest_framework import serializers
 from rest_framework.authtoken.models import Token
-from .models import CustomUser, Customer, Supplier
 from customers_suppliers.validators import CustomValidators
+from .models import CustomUser, Customer, Supplier
 from rest_framework.exceptions import ValidationError
 
-
-class CustomerSerializer(serializers.ModelSerializer):
+   
+class CustomerSerializers(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = ['id', 'phone_number']
-
-
-class SupplierSerializer(serializers.ModelSerializer):
+        
+        
+class SupplierSerializers(serializers.ModelSerializer):
     class Meta:
         model = Supplier
-        fields = ['contact_person',
+        fields = ['id', 'contact_person',
                   'supplier_type', 'inn',
                   'kpp', 'phone_number',
                   'name_organization']
@@ -23,12 +23,13 @@ class SupplierSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         CustomValidators.validate_kpp_for_ooo_serializer(attrs)
         return attrs
-    
-
+        
+        
+        
 class CustomUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-    customer = CustomerSerializer(required=False)
-    supplier = SupplierSerializer(required=False)
+    customer = CustomerSerializers(required=False)
+    supplier = SupplierSerializers(required=False)
     class Meta:
         model = CustomUser
         fields = ['id', 'username', 'user_type',
@@ -68,7 +69,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         customer_data = validated_data.get('customer')
         if customer_data:
             if hasattr(instance, 'customer'):
-                customer_serializer = CustomerSerializer(instance.customer, data=customer_data, partial=True)
+                customer_serializer = CustomerSerializers(instance.customer, data=customer_data, partial=True)
                 try:
                     customer_serializer.is_valid(raise_exception=True)
                     instance.save()
@@ -81,7 +82,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         supplier_data = validated_data.get('supplier')
         if supplier_data:
             if hasattr(instance, 'supplier'):
-                supplier_serializer = SupplierSerializer(instance.supplier, data=supplier_data, partial=True)
+                supplier_serializer = SupplierSerializers(instance.supplier, data=supplier_data, partial=True)
                 try:
                     supplier_serializer.is_valid(raise_exception=True)
                     instance.save()
@@ -91,5 +92,3 @@ class CustomUserSerializer(serializers.ModelSerializer):
             else:
                 raise ValidationError("Пользователь не является поставщиком, поэтому данные поставщика не могут быть обновлены.")
         return instance
-
-

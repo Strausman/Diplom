@@ -10,6 +10,9 @@ router.register(r'product_info', views.ProductInfoViewSet)
 router.register(r'parameter', views.ParameterViewSet)
 router.register(r'product_parameter', views.ProductParameterViewSet)
 
+
 urlpatterns = [
     path(r'api/v1/', include(router.urls)),
+    path(r'upload-yaml/', views.UploadFileView.as_view(), name='upload-yaml'),
+    path('test-error/', views.TestErrorView.as_view(), name='test-error'),
 ]

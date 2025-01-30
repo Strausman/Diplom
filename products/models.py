@@ -3,6 +3,8 @@ from django.db import models
 from customers_suppliers.models import Customer, Supplier
 
 
+
+
 class Category(models.Model):
     name = models.CharField(max_length=40, verbose_name='Название')
     shops = models.ManyToManyField(Supplier, verbose_name='Магазины', related_name='categories', blank=True)
@@ -66,7 +68,7 @@ class Parameter(models.Model):
 
 class ProductParameter(models.Model):
     product_info = models.ForeignKey(ProductInfo, verbose_name='Информация о продукте',
-                                     related_name='product_parameters', blank=True,
+                                     related_name='product_parameters', blank=True, unique=False,
                                      on_delete=models.CASCADE)
     parameter = models.ForeignKey(Parameter, verbose_name='Параметр', related_name='product_parameters', blank=True,
                                   on_delete=models.CASCADE)
@@ -81,3 +83,4 @@ class ProductParameter(models.Model):
     
     def __str__(self):
         return f"{self.product_info.model}. {self.parameter.name}"
+    

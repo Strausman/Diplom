@@ -1,12 +1,12 @@
-from django.contrib.auth.models import AbstractUser, User 
+from django.contrib.auth.models import AbstractUser, User
 from django.db import models
 from .validators import CustomValidators
+from easy_thumbnails.fields import ThumbnailerImageField
 
-# Create your models here.
 
 USER_TYPE_CHOICES = [
     ('customer', 'Покупатель'),
-    ('supplier', 'Поставщик'),
+    ('supplier', 'Поставщик'),   
 ]
 
 SUPPLIER_TYPE_CHOICES = [
@@ -14,22 +14,22 @@ SUPPLIER_TYPE_CHOICES = [
     ('IP', 'Индивидуальный предприниматель'),
 ]
 
-
-class CustomUser(AbstractUser):
+class CustomUser (AbstractUser ):
     email = models.EmailField(unique=True, blank=False, null=False)
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='customer')
-
+    # avatar = ThumbnailerImageField(upload_to='avatars/', blank=True, null=True)
+    
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
     def __str__(self):
-        return f"{self.username} ({self.email})"
-
+        return f"{self.username} ({self.email} - {self.user_type})"
 
 
 class Customer(models.Model):
-    user = models.OneToOneField(CustomUser, related_name='customer', on_delete=models.CASCADE)
-    phone_number = models.CharField(max_length=15, blank=True, null=True, validators=[CustomValidators.validate_phone])
+    user = models.OneToOneField(CustomUser , related_name='customer', on_delete=models.CASCADE)
+    phone_number = models.CharField(max_length=15, blank=True, null=True,
+                                      validators=[CustomValidators.validate_phone])
 
     def __str__(self):
         return f"{self.user.username} (Клиент)"
